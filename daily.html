@@ -29,13 +29,17 @@
 
     <div>
         <label for="">体重(kg)</label>
-        <input type="text" id="weight">
+        <!-- <input type="text" id="weight"> -->
+        <select name="weight" id="weight">
+        </select>
     </div>
 
 
     <div>
         <label for="">体脂肪(%)</label>
-        <input type="text" id="fat">
+        <!-- <input type="text" id="fat"> -->
+        <select name="fat" id="fat">
+        </select>
     </div>
 
 
@@ -615,6 +619,35 @@ https://firebase.google.com/docs/web/setup#config-web-app -->
                 //ログアウトの機能
                 firebase.auth().signOut();
             });
+
+
+
+            $(function () {
+                var option = '';
+                var str = '';
+
+                for (var i = 40; i <= 120; i++) {
+                    str += '<option value=' + i + '>' + i + '</option>';
+
+                }
+                $('#weight').html(str);
+            });
+
+
+
+            $(function () {
+                var option = '';
+                var str = '';
+
+                for (var i = 1; i <= 40; i++) {
+                    str += '<option value=' + i + '>' + i + '</option>';
+                }
+                $('#fat').html(str);
+            });
+
+
+
+
 
 
 
