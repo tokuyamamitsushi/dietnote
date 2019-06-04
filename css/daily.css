@@ -1,0 +1,103 @@
+body{
+    text-align: center;
+}
+
+
+
+.header-login{
+    text-align: right;
+}
+
+
+.date{
+    background: #228b22;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    margin-top: 10px;
+    color: white;
+}
+
+hr{    
+    background: #228b22;
+    
+}
+
+
+.suuchi-input{
+    background: #228b22;
+    color: white;
+}
+
+
+.QA{
+    background: #228b22;
+    color: white;
+
+}
+
+
+.gazou{
+        background: #228b22;
+    color: white;
+
+}
+
+.btn{
+    margin-top: 30px;
+    margin-bottom: 30px;
+    
+}
+
+button{
+    background: #228b22;
+    color: white;
+    padding: 3px 10px;
+    border-radius: 3px;
+
+}
+
+
+.score{
+        color: #228b22;
+}
+
+
+
+.rireki{
+        background: #228b22;
+    color: white;
+
+}
+
+
+.gurahu{
+        background: #228b22;
+    color: white;
+
+}
+
+hr {
+border: 1px #228b22 solid;
+background-color: #228b22;
+}
+
+hr{
+        background: ;
+size: 3px;
+
+}
+
+
+#imgSample1{
+    margin: 10px
+}
+
+
+#imgSample2{
+    margin: 10px
+}
+
+
+#imgSample3{
+    margin: 10px
+}

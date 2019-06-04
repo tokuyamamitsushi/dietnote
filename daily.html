@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>dialy</title>
+    <link rel="stylesheet" href="css/daily.css">
+</head>
+
+<body onload="readFirst()">
+
+    <div class="header-login">
+        <p id="info"></p>
+        <button id="logout" class="hide">ログアウト</button>
+    </div>
+
+
+    <div class="date">
+        <h2 id="contents_day"></h2>
+    </div>
+
+
+    <div class="suuchi-input">
+        <h3>数値入力</h3>
+    </div>
+
+    <div>
+        <label for="">体重(kg)</label>
+        <input type="text" id="weight">
+    </div>
+
+
+    <div>
+        <label for="">体脂肪(%)</label>
+        <input type="text" id="fat">
+    </div>
+
+
+    <div class="QA">
+        <h3>アンケート</h3>
+    </div>
+    <!-- 質問内容を記載する -->
+    <p id="question"></p>
+
+
+    <!-- 回答内容をチェックする -->
+    <form action="">
+        <label for="choice00">
+            <input type="radio" name="choices" id="choice00" value="0">
+            <span id="choice00_label"></span>
+        </label>
+        &nbsp;&nbsp;&nbsp;
+        <label for="choice01">
+            <input type="radio" name="choices" id="choice01" value="1">
+            <span id="choice01_label"></span>
+        </label>
+    </form>
+
+
+    <!-- 現在の回答状況 -->
+    <div class="question_count">
+        <p id="count"></p>
+    </div>
+
+    <!-- 毎回、点数を表示する -->
+    <div class="score">
+        <h1 id="score">TOTAL SCORE</h1>
+
+        <!-- <p type="text" id="scoreAll"></p> -->
+
+    </div>
+
+    <div class="gazou">
+        <h3>画像アップロード</h3>
+    </div>
+
+    <!-- 食事の写真をアップロードする -->
+    <form autocomplete="off">
+        <div class=photo>
+            <p>朝食画像</p>
+            <input type="file" id="setfile1">
+            <button id="btn1">朝食を登録する</button>
+            <br>
+            <div id="imgSample1"></div>
+            <!-- <div id="imgSample1url"></div> -->
+
+
+        </div>
+
+
+        <div class=photo>
+            <p>昼食画像</p>
+            <input type="file" id="setfile2">
+            <button id="btn2">昼食を登録する</button>
+            <br>
+            <div id="imgSample2"></div>
+            <!-- <div id="imgSample2url"></div> -->
+
+        </div>
+
+
+        <div class=photo>
+            <p>夕食画像</p>
+            <input type="file" id="setfile3">
+            <button id="btn3">夕食を登録する</button>
+
+            <div id="imgSample3"></div>
+            <!-- <div id="imgSample3url"></div> -->
+        </div>
+
+
+
+        <div class=btn>
+            <button type="button" id="send">データを送信する</button>
+        </div>
+
+
+        <div class="gurahu">
+            <h3>グラフ</h3>
+        </div>
+        <canvas id="my_chart"> </canvas>
+
+
+
+
+
+
+        <div class="rireki">
+            <h3>履歴一覧</h3>
+        </div>
+
+        <div id="output"></div>
+
+
+        <!-- テキスト表示用 -->
+
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/6.0.2/firebase-storage.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/6.0.2/firebase.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
+
+
+        <!-- photoの定義→確認する？ -->
+        <!-- <script src="https://www.gstatic.com/firebasejs/5.0.4/firebase-app.js"></script> -->
+        <!-- <script src="https://www.gstatic.com/firebasejs/5.0.4/firebase-firestore.js"></script> -->
+
+
+
+
+        <!--TODO: Add SDKs for Firebase products that you want to use
+https://firebase.google.com/docs/web/setup#config-web-app -->
+
+        <script>
+            // Your web app's Firebase configuration
+            var firebaseConfig = {
+                apiKey: "AIzaSyCovvfGmI149S8BDfCf1YGyxkhHZRxvQ5Y",
+                authDomain: "dietnotemain.firebaseapp.com",
+                databaseURL: "https://dietnotemain.firebaseio.com",
+                projectId: "dietnotemain",
+                storageBucket: "dietnotemain.appspot.com",
+                messagingSenderId: "621190478690",
+                appId: "1:621190478690:web:f29e6db63eeb6edc"
+            };
+            // Initialize Firebase
+            firebase.initializeApp(firebaseConfig);
+        </script>
+
+
+
+        <script>
+
+            //画像の追加
+            // formインスタンスを定義
+            const form = document.querySelector('form');
+            // setfileインスタンスを作成
+            const setfile1 = document.getElementById("setfile1");
+            const setfile2 = document.getElementById("setfile2");
+            const setfile3 = document.getElementById("setfile3");
+
+            // CloudStorageインスタンスを作成
+            const storage = firebase.storage();
+
+            // imgSampleインスタンスを作成
+            const imgSample1 = document.getElementById("imgSample1");
+            const imgSample2 = document.getElementById("imgSample2");
+            const imgSample3 = document.getElementById("imgSample3");
+
+            // imgSampleのURLインスタンスを作成
+            // const imgSample1url = document.getElementById("imgSample1url");
+            // const imgSample2url = document.getElementById("imgSample2url");
+            // const imgSample3url = document.getElementById("imgSample3url");
+
+
+
+            //送信をおしたときの内容
+            const btn1 = document.getElementById("btn1");
+            const btn2 = document.getElementById("btn2");
+            const btn3 = document.getElementById("btn3");
+
+
+            // グローバル変数を定義
+            var file_name;
+            var blob;
+            var imageUrl01 = '';
+            var imageUrl02 = '';
+            var imageUrl03 = '';
+
+            // setfile1の変更で処理開始（変更があった要素がeで返される）
+            setfile1.addEventListener("change", e => {
+                var file = e.target.files;
+                // fileの名前を取得
+                file_name = file[0].name;
+                // blob形式に変換
+                blob = new Blob(file, { type: "image/jpeg" });
+                console.warn(blob);
+            });
+
+            // submitで処理開始
+            btn1.addEventListener('click', e => {
+                // ページ遷移をなくす
+                e.preventDefault();
+
+                // storageのarea_imagesへの参照を定義
+                var uploadRef = storage.ref('').child(file_name);
+                uploadRef.put(blob).then(snapshot => {
+                    console.log(snapshot.state);
+                    // アップロードしたファイルのurlを取得
+                    uploadRef.getDownloadURL().then(url => {
+                        console.log(url);
+                        // htmlに表示する
+                        imgSample1.innerHTML = `<img src =${url}+ width="170"+height="120"+>`;
+                        // imgSample1url.innerHTML = `${url}`;
+                        imageUrl01 = url;
+
+                    }).catch(error => {
+                        console.log(error);
+                    });
+                });
+                // valueリセットする
+                file_name = '';
+                blob = '';
+            });
+
+
+
+
+
+            // setfile2の変更で処理開始（変更があった要素がeで返される）
+            setfile2.addEventListener("change", e => {
+                var file = e.target.files;
+                // fileの名前を取得
+                file_name = file[0].name;
+                // blob形式に変換
+                blob = new Blob(file, { type: "image/jpeg" });
+                console.warn(blob);
+            });
+
+            // submitで処理開始
+            btn2.addEventListener('click', e => {
+                // ページ遷移をなくす
+                e.preventDefault();
+
+                // storageのarea_imagesへの参照を定義
+                var uploadRef = storage.ref('').child(file_name);
+                uploadRef.put(blob).then(snapshot => {
+                    console.log(snapshot.state);
+                    // アップロードしたファイルのurlを取得
+                    uploadRef.getDownloadURL().then(url => {
+                        console.log(url);
+
+                        // htmlに表示する
+                        imgSample2.innerHTML = `<img src =${url}+ width="170"+height="120"+>`;
+                        // imgSample2url.innerHTML = `${url}`;
+                        imageUrl02 = url;
+
+
+                    }).catch(error => {
+                        console.log(error);
+                    });
+                });
+                // valueリセットする
+                file_name = '';
+                blob = '';
+            });
+
+
+
+            // setfile3の変更で処理開始（変更があった要素がeで返される）
+            setfile3.addEventListener("change", e => {
+                var file = e.target.files;
+                // fileの名前を取得
+                file_name = file[0].name;
+                // blob形式に変換
+                blob = new Blob(file, { type: "image/jpeg" });
+                console.warn(blob);
+            });
+
+            // submitで処理開始
+            btn3.addEventListener('click', e => {
+                // ページ遷移をなくす
+                e.preventDefault();
+
+                // storageのarea_imagesへの参照を定義
+                var uploadRef = storage.ref('').child(file_name);
+                uploadRef.put(blob).then(snapshot => {
+                    console.log(snapshot.state);
+                    // アップロードしたファイルのurlを取得
+                    uploadRef.getDownloadURL().then(url => {
+                        console.log(url);
+
+                        // htmlに表示する
+                        imgSample3.innerHTML = `<img src =${url}+ width="170"+height="120"+>`;
+                        // imgSample3url.innerHTML = `${url}`;
+                        imageUrl03 = url;
+
+
+                    }).catch(error => {
+                        console.log(error);
+                    });
+                });
+                // valueリセットする
+                file_name = '';
+                blob = '';
+            });
+
+
+
+            // アンケートの内容
+
+            // 問題の定義
+            const question = [
+                '①３食毎食タンパク質を摂れた（肉・魚・卵・魚介類・豆類など）',
+                '②タンパク質の間食を２回（プロテイン・チキン・ゆで卵など）、計５回の栄養補給ができた',
+                '③３～４時間置きに栄養補給ができた（長時間栄養補給ができないと、筋分解をしてしまう懸念があります）',
+                '④ 食事量を「朝＞昼＞夜」または「朝昼＞夜」と、夜を少なめに調整できた',
+                '⑤ ご飯やパン、麺類・イモ類など、夜に炭水化物を食べなかった（体重を増やしたい方は食べていただき、＋１0点）',
+                '⑥ お酒を飲まなかった',
+                '⑦ 睡眠時間は６～７時間とれた（６時間以下、７時間以上も - 10点）',
+                '⑧ 水を１.５L～２L 飲んだ（お茶などではなく、純粋な水）',
+                '⑨「豆類・海藻類・緑黄色野菜・根菜類・魚・きのこ類」を食べた',
+                '⑩「洋食・中華・カレー・ラーメン・炒飯・ピザ・パスタ・揚げ物・お好み焼き・ハンバーグ・牛丼」を食べなかった',
+            ];
+
+            // 選択肢の定義（これはなくてもよい）
+            const choices = [
+                ['Yes', 'No'],
+                ['Yes', 'No'],
+                ['Yes', 'No'],
+                ['Yes', 'No'],
+                ['Yes', 'No'],
+                ['Yes', 'No'],
+                ['Yes', 'No'],
+                ['Yes', 'No'],
+                ['Yes', 'No'],
+                ['Yes', 'No'],
+            ];
+
+            // ポイントの定義（これはなくてもよい）
+            const answer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+            // カウント用変数
+            var count = 0;
+            var score = 0;
+
+            // 最初の問題と選択肢を表示する
+            $('#question').text(question[count]);
+            $('#choice00_label').text(choices[count][0]);
+            $('#choice01_label').text(choices[count][1]);
+
+
+            // クリック時に点数の計測を行う
+            $('input[name="choices"]').on('click', function () {
+                if ($(this).val() == answer[count]) {
+                    // プラスのときの処理
+                    // alert('＋10点');
+                    $('#result').text('＋10点');
+                    $('#score').text(score += 10);
+                    document.getElementById('score').innerHTML = ('TOTAL SCORE (' + score + ' /100 ）');
+                } else {
+                    // マイナスのときの処理
+                    // alert('0点');
+                    $('#result').text('0点');
+                    $('#score').text(score += 0);
+                    document.getElementById('score').innerHTML = ('TOTAL SCORE（' + score + ' /100 ）');
+                }
+
+                // カウントを増やす
+                count++;
+
+
+                if (count < question.length) {
+                    //次の問題を表示
+                    $('#count').text('回答状況 ' + (Number(count) + 1) + '/10')
+                    $('#question').text(question[count]); $('#choice00_label').text(choices[count][0]);
+                    $('#choice01_label').text(choices[count][1]);
+                } else if (count == question.length) {
+                    if (score > 70) {
+                        alert('おわりです！ いい感じです！' + score + '点');
+                        document.getElementById('scoreAll').innerHTML = score;
+                    } else if (score > 30 && score < 70) {
+                        alert('おわりです！ もう少し' + score + '点');
+                        document.getElementById('scoreAll').innerHTML = score;
+
+                    } else {
+                        alert('おわりです！ がんばろう' + score + '点');
+                        document.getElementById('scoreAll').innerHTML = score;
+                    }
+                } if ($(this).prop('checked') == true) { $(this).prop('checked', false); }
+            });
+
+
+
+            var newPostRef = firebase.database().ref();
+
+
+            // 日付を取得して表示する
+            // function ymd() {
+            //     var date = new Date();
+            //     return (date.getMonth() + 1) + "月" + date.getDate() + "日" + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds()
+            //     document.getElementById('date').innerHTML = dateHtml;
+
+            // }
+
+            // 日付を取得して表示する
+            var today = new Date();
+            var todayHtml = (today.getMonth() + 1) + '月' + today.getDate() + '日';
+            document.getElementById('contents_day').innerHTML = todayHtml;
+
+            // 日時を取得する関数
+            function ymd() {
+                var date = new Date();
+                return (date.getMonth() + 1) + "月" + date.getDate() + "日" + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds()
+            }
+
+
+            var scoreAll = document.getElementById('scoreAll');
+            var gazou1 = document.getElementById('imgSample1');
+
+
+            // 送信ボタンクリックでメッセージ送信
+            $('#send').on('click', function () {
+                console.log(imageUrl01);
+
+                newPostRef.push({
+                    weight: $('#weight').val(),
+                    time: ymd(),
+                    fat: $('#fat').val(),
+                    score: score,
+                    img1: imageUrl01,
+                    img2: imageUrl02,
+                    img3: imageUrl03
+
+                });
+                $('#weight').val('');
+                $('#fat').val('');
+                $('#scoreAll').val('');
+                $('#imgSample1').remove();
+                $('#imgSample2').remove();
+                $('#imgSample3').remove();
+                $('#score').remove();
+
+                $('#setfile1').val('');
+                $('#setfile2').val('');
+                $('#setfile3').val('');
+            });
+
+
+
+            var type = 'line';
+            var data = {
+                // labels: [2010, 2011, 2012, 2013, 2011, 2012, 2013, 2011, 2012, 2013],
+                labels: [],
+                datasets: [{
+                    label: '体重(Kg)',
+                    // backgroundColor: "rgba(75,192,192,0.4)",
+                    //境界線の色
+                    borderColor: "rgba(75,192,192,1)",
+                    //点の色
+                    pointBorderColor: "rgba(75,192,192,1)",
+
+                    // data: [78, 78, 80, 80, 81, 80, 31, 23, 15, 10]
+                    data: []
+
+
+
+                }, {
+                    label: '体脂肪(%)',
+
+                    backgroundColor: "rgba(255,192,203,0.4)",
+                    //境界線の色
+                    borderColor: "rgba(255,192,203,1)",
+                    //点の色
+                    pointBorderColor: "rgba(255,192,203,1)",
+
+
+                    // data: [21, 20, 19, 18, 17, 16, 15, 14, 13, 12]
+                    data: []
+                }]
+            };
+
+
+            //メッセージが追加されたら自動的に表示
+            newPostRef.on('child_added', function (firebaseData) {
+                const k = firebaseData.key;
+                const v = firebaseData.val();
+
+                var str = '';
+                str += '<div id="' + k + '">';
+                str += '<p>' + '日時：' + v.time + '</p>';
+                str += '<p>' + '体重：' + v.weight + 'Kg' + '</p>';
+                str += '<p>' + '体脂肪：' + v.fat + '%' + '</p>';
+                str += '<p>' + 'ダイエットスコア(：' + v.score + '/100) 点' + '</p>';
+                str += `<img src="${v.img1} "alt="画像1" width="170" height="120"</p > `;
+                str += `<img src="${v.img2} "alt="画像1" width="170" height="120"</p > `;
+                str += `<img src="${v.img3} "alt="画像1" width="170" height="120"</p > `;
+
+
+
+                str += '<hr>';
+
+                str += '</div>';
+                $('#output').prepend(str);
+
+
+                var data_labels = v.time
+                var data_datasets_weight = v.weight
+                var data_datasets_fat = v.fat
+                var data_datasets_scoreAll = v.score
+
+                // console.log(data_labels);
+                // console.log(data_datasets_weight);
+                // console.log(data_datasets_fat);
+                // console.log(data_datasets_scoreAll);
+
+
+                data.labels.push(data_labels);
+                data.datasets[0].data.push(data_datasets_weight);
+                data.datasets[1].data.push(data_datasets_fat);
+
+
+
+                var options = {
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                suggestedMin: 0,
+                                suggestedMax: 140,
+                                stepSize: 10,
+                            },
+                            id: 'id_weight',
+                            position: 'left',
+                        }, {
+                            ticks: {
+                                suggestedMin: 0,
+                                suggestedMax: 140,
+                                stepSize: 10,
+                            },
+                            id: 'id_fat',
+                            position: 'right',
+                            gridLines: {
+                                display: false
+                            }
+
+                        }]
+                    }
+                };
+
+                var ctx = document.getElementById('my_chart').getContext('2d');
+                var myChart = new Chart(ctx, {
+                    type: type,
+                    data: data,
+                    options: options
+                });
+            });
+
+
+
+            //認証状態の確認
+            firebase.auth().onAuthStateChanged(function (user) {
+
+                //もしログインの時、loginDisplayを表示する
+                if (user) {
+
+                    loginDisplay();
+                }
+
+                //もしログアウトの時、logoutDisplayを表示する
+                else {
+                    logoutDisplay();
+
+                }
+            });
+
+            function loginDisplay() {
+                info.textContent = "ログイン中";
+            }
+
+            function logoutDisplay() {
+                //ログアウトの時、ログアウトのボタンは、非表示にする
+                logout.classList.add('hide');
+
+                //ログアウト後のページ遷移する
+                location.href = 'file:///Users/tokuyama/Downloads/6.dietNote/LoginTop.html';
+
+                info.textContent = "ログアウト中";
+            }
+
+
+            //ログアウト処理
+            logout.addEventListener('click', function () {
+                //ログアウトの機能
+                firebase.auth().signOut();
+            });
+
+
+
+
+        </script>
+
+</body>
+
+</html>
