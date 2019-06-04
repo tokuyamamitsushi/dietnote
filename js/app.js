@@ -87,7 +87,7 @@ function loginDisplay() {
     inputarea.classList.add('hide');
 
     //ログイン後のページ遷移する
-    location.href = 'file:///Users/tokuyama/Downloads/6.dietNote/daily.html?';
+    location.href = 'https://tokuyamamitsushi.github.io/dietnote/daily.html';
 
 
     //テキストを表示する
@@ -104,7 +104,7 @@ function logoutDisplay() {
     inputarea.classList.remove('hide');
 
     // //ログアウト後のページ遷移する
-    // location.href = 'file:///Users/tokuyama/Downloads/6.dietNote/LoginTop.html';
+    // location.href = 'https://tokuyamamitsushi.github.io/dietnote/';
 
 
     info.textContent = "";
